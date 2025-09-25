@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>YouTube Upozornění</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    body { font-family: 'Inter', sans-serif; background:#f9fafb; color:#1f2937; }
+    .notification-box {
+      position:fixed;top:20px;right:20px;background:#fff;color:#1f2937;
+      padding:16px;border-radius:12px;box-shadow:0 4px 12px rgba(0,0,0,.1);
+      max-width:320px;z-index:1000;display:none;flex-direction:column;gap:8px;
+      border:1px solid #e5e7eb;
+    }
+    .notification-box img{border-radius:8px}
+  </style>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+</head>
+<body class="flex flex-col items-center justify-center min-h-screen p-6">
+
+  <div id="notification-box" class="notification-box"></div>
+
+  <main class="text-center p-10 bg-white rounded-2xl shadow-lg w-full max-w-xl border border-gray-200">
+    <div class="mb-6">
+      <img src="https://placehold.co/120x120/e0f2fe/0284c7?text=LOGO" alt="Logo" class="mx-auto rounded-full shadow-md">
+    </div>
+    <h1 class="text-3xl font-bold mb-4">Upozornění na videa</h1>
+    <p class="text-lg text-gray-600 mb-8">Klikni na tlačítko a nezmeškej žádné nové video z mého kanálu.</p>
+
+    <div class="flex gap-4 justify-center">
+      <button id="btnSubscribe" class="bg-gradient-to-r from-sky-500 to-indigo-500 text-white font-semibold py-3 px-6 rounded-full shadow-md hover:opacity-90 transition">
+        Zapnout upozornění
+      </button>
+      <button id="btnUnsubscribe" class="hidden bg-gray-200 text-gray-800 font-semibold py-3 px-6 rounded-full shadow-md hover:bg-gray-300 transition">
+        Vypnout
+      </button>
+    </div>
+  </main>
+
+<script>
+const notificationBox=document.getElementById("notification-box");
+const btnSub=document.getElementById("btnSubscribe");
+const btnUnsub=document.getElementById("btnUnsubscribe");
+
+function showBanner(title, body, icon, url="#"){
+  notificationBox.innerHTML =
+    "<div class='flex items-start'>" +
+      "<img src='"+icon+"' alt='Thumb' class='w-16 h-12 object-cover mr-4'>" +
+      "<div class='flex-1'>" +
+        "<div class='text-sm font-bold mb-1'>"+title+"</div>" +
+        "<p class='text-xs text-gray-600'>"+body+"</p>" +
+      "</div>" +
+    "</div>" +
+    "<a href='"+url+"' target='_blank' class='text-sky-600 text-xs mt-2 underline block'>Otevřít</a>";
+  notificationBox.style.display='flex';
+  setTimeout(()=>notificationBox.style.display='none',5000);
+}
+
+async function registerServiceWorker(){return await navigator.serviceWorker.register("/sw.js");}
+
+function urlBase64ToUint8Array(base64String){
+  const padding="=".repeat((4-base64String.length%4)%4);
+  const base64=(base64String+padding).replace(/-/g,"+").replace(/_/g,"/");
+  const rawData=atob(base64);
+  const outputArray=new Uint8Array(rawData.length);
+  for(let i=0;i<rawData.length;++i) outputArray[i]=rawData.charCodeAt(i);
+  return outputArray;
+}
+
+async function subscribeToPush(reg){
+  const res=await fetch("/vapidPublicKey");
+  const { publicKey }=await res.json();
+  const sub=await reg.pushManager.subscribe({userVisibleOnly:true,applicationServerKey:urlBase64ToUint8Array(publicKey)});
+  await fetch("/subscribe",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(sub)});
+}
+
+async function unsubscribeFromPush(reg){
+  const sub=await reg.pushManager.getSubscription();
+  if(sub){
+    await fetch("/unsubscribe",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({endpoint:sub.endpoint})});
+    await sub.unsubscribe();
+  }
+}
+
+btnSub.addEventListener("click", async ()=>{
+  const perm=await Notification.requestPermission();
+  if(perm!=="granted"){showBanner("Chyba","Musíš povolit notifikace.","https://placehold.co/64x48/f43f5e/fff?text=!");return;}
+  const reg=await registerServiceWorker();
+  await subscribeToPush(reg);
+  btnSub.classList.add("hidden");
+  btnUnsub.classList.remove("hidden");
+  showBanner("Hotovo","Upozornění zapnuto.","https://placehold.co/64x48/22c55e/0b1220?text=✓");
+});
+
+btnUnsub.addEventListener("click", async ()=>{
+  const reg=await registerServiceWorker();
+  await unsubscribeFromPush(reg);
+  btnUnsub.classList.add("hidden");
+  btnSub.classList.remove("hidden");
+  showBanner("Hotovo","Upozornění vypnuto.","https://placehold.co/64x48/f43f5e/fff?text=–");
+});
+</script>
+</body>
+</html>

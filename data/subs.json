@@ -1,0 +1,18 @@
+[
+  {
+    "endpoint": "https://fcm.googleapis.com/fcm/send/fN7eKnjrc0k:APA91bE8poHiyONA8p_vq0W1U3MU2QcNiXCHiOFsvzRs1JKQVHLXizM4xG0UCVj7WYRZvmQWnifHXGnFFbaNVtP05MCdQQq2_JfUToJsze1LcIIQAymCZ3onitYb739P6SKvArUMukSM",
+    "expirationTime": null,
+    "keys": {
+      "p256dh": "BOsuYqETF9txkue6Zq8bHnmbnliYePrbnoxL2ozmenleEaoWLDlcU1ZyovpgMgnnPJabbmZb8HbheesX6GMd9SM",
+      "auth": "xP7sMuXyvbLAS0krd67YtA"
+    }
+  },
+  {
+    "endpoint": "https://fcm.googleapis.com/fcm/send/fN7eKnjrc0k:APA91bE8poHiyONA8p_vq0W1U3MU2QcNiXCHiOFsvzRs1JKQVHLXizM4xG0UCVj7WYRZvmQWnifHXGnFFbaNVtP05MCdQQq2_JfUToJsze1LcIIQAymCZ3onitYb739P6SKvArUMukSM",
+    "expirationTime": null,
+    "keys": {
+      "p256dh": "BOsuYqETF9txkue6Zq8bHnmbnliYePrbnoxL2ozmenleEaoWLDlcU1ZyovpgMgnnPJabbmZb8HbheesX6GMd9SM",
+      "auth": "xP7sMuXyvbLAS0krd67YtA"
+    }
+  }
+]

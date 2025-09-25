@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin – YouTube WebPush</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    body{background:#0f172a;color:#e2e8f0;font-family: ui-sans-serif,system-ui,Segoe UI,Roboto}
+    .card{background:rgba(15,23,42,.7);backdrop-filter:blur(8px);border:1px solid rgba(148,163,184,.2);border-radius:1rem;padding:1.5rem;margin-bottom:1.5rem}
+    input{background:#0b1220;border:1px solid rgba(148,163,184,.25);border-radius:.5rem;padding:.5rem 1rem;color:#e2e8f0;width:100%}
+    label{color:#94a3b8;font-size:.85rem}
+    button{border-radius:.5rem;padding:.6rem 1.2rem;font-weight:600}
+  </style>
+</head>
+<body class="p-6 max-w-4xl mx-auto">
+  <h1 class="text-2xl font-bold mb-6">Admin panel</h1>
+
+  <div class="card">
+    <label for="token">Admin token</label>
+    <div class="flex gap-2 mt-2">
+      <input id="token" placeholder="ADMIN_TOKEN">
+      <button id="btnSaveToken" class="bg-slate-700 hover:bg-slate-600">Uložit</button>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2 class="text-xl font-semibold mb-3">Stav</h2>
+    <p><strong>Poslední video ID:</strong> <span id="lastVideoId">–</span></p>
+    <p><strong>Počet odběratelů:</strong> <span id="subCount">0</span></p>
+    <p><strong>Ping:</strong> <span id="ping">…</span></p>
+  </div>
+
+  <div class="card">
+    <h2 class="text-xl font-semibold mb-3">Test notifikace</h2>
+    <label>Nadpis</label>
+    <input id="title" placeholder="Nadpis notifikace">
+    <label class="mt-3 block">Text</label>
+    <input id="body" placeholder="Text notifikace">
+    <label class="mt-3 block">URL</label>
+    <input id="url" placeholder="https://youtube.com">
+    <button id="send" class="bg-indigo-600 hover:bg-indigo-700 text-white mt-3">Odeslat test</button>
+    <div id="sendResult" class="text-sm text-slate-400 mt-2"></div>
+  </div>
+
+<script>
+function authHeaders(){
+  const token = localStorage.getItem('ADMIN_TOKEN') || '';
+  return token ? { 'Authorization': 'Bearer ' + token, 'Content-Type':'application/json' } : {'Content-Type':'application/json'};
+}
+
+async function api(path, options={}){
+  const res = await fetch(path,{...options,headers:{...(options.headers||{}),...authHeaders()}});
+  if(!res.ok) throw new Error(await res.text());
+  return res.json();
+}
+
+async function loadDashboard(){
+  try{await api('/admin/ping'); document.getElementById('ping').textContent='OK';}catch(e){document.getElementById('ping').textContent='Chyba';}
+  try{const st=await api('/admin/state');document.getElementById('lastVideoId').textContent=st.lastVideoId||'–';}catch{}
+  try{const subs=await api('/admin/subscriptions');document.getElementById('subCount').textContent=subs.count||0;}catch{}
+}
+
+document.getElementById('btnSaveToken').addEventListener('click',()=>{
+  localStorage.setItem('ADMIN_TOKEN',document.getElementById('token').value.trim());
+  loadDashboard();
+});
+
+document.getElementById('send').addEventListener('click',async()=>{
+  const title=document.getElementById('title').value;
+  const body=document.getElementById('body').value;
+  const url=document.getElementById('url').value;
+  try{
+    const res=await api('/admin/notify',{method:'POST',body:JSON.stringify({title,body,url})});
+    document.getElementById('sendResult').textContent="Odesláno: "+res.sent+" | Vyřazeno: "+res.dropped;
+  }catch(e){
+    document.getElementById('sendResult').textContent="Chyba: "+e.message;
+  }
+});
+
+loadDashboard();
+</script>
+</body>
+</html>

@@ -1,0 +1,26 @@
+services:
+  - type: web
+    name: youtube-webpush-pro
+    env: node
+    plan: starter
+    buildCommand: npm install
+    startCommand: node server.js
+    envVars:
+      - key: VAPID_PUBLIC_KEY
+        sync: false
+      - key: VAPID_PRIVATE_KEY
+        sync: false
+      - key: VAPID_SUBJECT
+        sync: false
+      - key: SUPABASE_URL
+        sync: false
+      - key: SUPABASE_SERVICE_ROLE
+        sync: false
+      - key: YT_API_KEY
+        sync: false
+      - key: CHANNEL_ID
+        sync: false
+      - key: CRON_SECRET
+        sync: false
+      - key: PUBLIC_BASE_URL
+        sync: false
